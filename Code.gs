@@ -1,5 +1,5 @@
 var moment = Moment.load(); // init momentjs library : MHMchiX6c1bwSqGM1PZiW_PxhMjh3Sh48
-var cache = CacheService.getScriptCache(); // Cache; // shared library to fix the siloing issue
+var cache = CacheService.getScriptCache(); 
 
 
 
@@ -167,9 +167,5 @@ function cacheEvents(){
     cache.put(key, JSON.stringify(events[key]),21600);
   }
 
-}
-
-function updateCache(){
-    var res = UrlFetchApp.fetch("https://script.google.com/macros/s/AKfycbykG3sBEbkdNnHw1-5SzgXws-gBB2Hgi2PDT44R4vZ8SvFBRWo/exec?cache=true").getContentText();
 }
 
