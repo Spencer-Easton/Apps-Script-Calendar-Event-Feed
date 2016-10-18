@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script type="text/javascript">
+    var datefield=document.createElement("input")
+    datefield.setAttribute("type", "date")
+    if (datefield.type!="date"){ //if browser doesn't support input type="date", load files for jQuery UI Date Picker
+        document.write('<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.3/themes/smoothness/jquery-ui.css" />\n');
+        document.write('<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.3/jquery-ui.min.js"><\/script>\n');
+    }
+</script>
+
+    <style>
+
+#eventDate input{
+  width:125px;
+}
+#eventDate{
+  font-size:12px;
+
+
+}
+
+.date_field {position: relative; z-index:100;}
+
+div.ui-datepicker{
+ font-size:10px;
+}
+
+    .btn {
+  -webkit-border-radius: 6;
+  -moz-border-radius: 6;
+  border-radius: 2px;
+  font-family: Arial;
+  color: black;
+  font-size: 11px;
+  background: #E8F5E9;
+  padding: 2px 2px 2px 2px;
+  text-decoration: none;
+}
+
+.btn:hover {
+  background: #C8E6C9;
+  text-decoration: none;
+}
+
+   #calWidget{
+     width:220px;
+     height:500px;
+   }
+   .navbar{
+    width: 0 auto;
+   }
+   .nav{
+     margin-bottom:1px;
+   }
+
+
+    td{
+      font-family:"Arial", sans-serif;
+    }
+      #calEvents{
+        width:auto;
+        height:auto;
+        background:#E8F5E9;
+        border: solid 1px #1B5E20 ;
+        margin-bottom:5px;
+        padding-left:2px;
+        padding-right:2px;
+
+      }
+      th{
+        background:#C8E6C9;
+      }
+
+      .title{
+        border-bottom: 1px solid #000;
+
+      }
+
+    #calEvents thead{
+
+    display: table-header-group;
+    vertical-align: middle;
+    border-color: inherit;
+    font-size:x-large;
+    text-align:center;
+
+          }
+
+     #calEvents tbody div{
+    overflow-y: scroll;
+    overflow-x: hidden;
+    height:500px;
+}
+
+    thead td{
+      font-family: "Times New Roman", Times, serif;
+    }
+
+
+   a{
+      color:black;
+      text-decoration: none;
+   }
+
+    </style>
+
+  </head>
+  <body>
+<div id="calWidget">
+     <span class="navbar">
+    <span><button id="setToday-btn" class="nav btn">Today</button></span>
+    <span><input type="date" id="eventDate" name="eventDate" size="15" class="nav" required="required" /></span>
+     <span ><a id="back-btn" class="nav"  href><img src="images/leftArrow.png" height="10" width="10"></a></span>
+    <span><a id="forward-btn" class="nav" href ><img src="images/rightArrow.png" height="10" width="10"></a></span>
+  </span>
+    <table id="calEvents">
+      <thead>
+        <tr><td class="title">Upcoming Events</td></tr>
+        <tr class="loading"><td>loading...</td></tr>
+      </thead>
+
+      <tbody>
+
+      </tbody>
+    </table>
+
+</div>
+
+  </body>
+  <script>
+    var dayOffset = 0;
+    var baseDate = new Date();
+
+    $(function(){
+
+       if (datefield.type!="date"){ //if browser doesn't support input type="date", initialize date picker widget:
+          $('#eventDate').datepicker();
+      }
+
+      $('#eventDate').val(makeYYYYMMDD(baseDate));
+
+       fetchEvents(dayOffset,baseDate);
+
+          $('#eventDate').change(function(){
+            $('.loading').show();
+            dayOffset = 0;
+            baseDate = $(this).val();
+            fetchEvents(dayOffset,baseDate);
+          })
+
+
+       $('#back-btn').click(function(e){
+          e.preventDefault();
+         $('.loading').show();
+         dayOffset -= 7;
+        fetchEvents(dayOffset,baseDate);
+       });
+
+
+       $('#setToday-btn').click(function(){
+         baseDate = new Date();
+         $('#eventDate').val(makeYYYYMMDD(baseDate));
+         dayOffset = 0;
+         $('.loading').show()
+        fetchEvents(dayOffset,baseDate);
+       });
+
+       $('#forward-btn').click(function(e){
+         e.preventDefault();
+         $('.loading').show()
+         dayOffset += 7;
+        fetchEvents(dayOffset,baseDate);
+       });
+
+});
+
+ function fetchEvents(offset,baseDate){
+    var url = "https://script.google.com/macros/s/AKfycbykG3sBEbkdNnHw1-5SzgXws-gBB2Hgi2PDT44R4vZ8SvFBRWo/exec?offset="+offset+"&baseDate="+baseDate+"&callback=?";
+    $.getJSON( url, function( events ) {
+      var items = [];
+      for(var date in events){
+         items.push("<tr><th>"+date+"</th></tr>");
+        for(var i in events[date]){
+          if(events[date][i].allDay == false ){
+            items.push('<tr>'+
+            '<td><a href="'+events[date][i].htmlLink +'" target="_blank">&#155;&nbsp;'+events[date][i].startTime+'   ' +events[date][i].eventName+'</a></td>'+
+            '</tr>');
+
+          }else{
+             items.push('<tr>'+
+            '<td><a href="'+events[date][i].htmlLink +'" target="_blank">&#155;&nbsp;'+events[date][i].eventName+'</a></td>'+
+            '</tr>');
+
+          }
+        }
+        items.push("<tr><td>&nbsp</td></tr>")
+
+      }
+
+     $('.loading').hide();
+     $('#calEvents > tbody').empty().append('<div class="scrollit"><table>'+items.join("")+'<table></div>');
+    });
+
+ }
+
+
+ function makeYYYYMMDD(date){
+   var dom = date.getDate();
+   var month = date.getMonth()+1;
+   var year = date.getFullYear();
+   if(parseInt(dom)<10)dom = "0"+dom;
+   if(parseInt(month)<10)month = "0"+month;
+
+
+   return year+"-"+month+"-"+dom;
+
+}
+
+
+  </script>
+</html>
